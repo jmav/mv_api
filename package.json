@@ -1,0 +1,19 @@
+{
+  "author": "Jure Mav",
+  "name": "test-mysql",
+  "version": "0.0.1",
+  "description": "Test of mysql",
+  "scripts": {
+    "start": "node ./test1.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nodejitsu/http-server.git"
+  },
+  "dependencies" : {
+    "mysql": "2.0.0-alpha5"
+  },
+  "engines": {
+    "node": ">=0.6"
+  }
+}
