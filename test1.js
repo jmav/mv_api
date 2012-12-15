@@ -8,31 +8,28 @@ var connection = mysql.createConnection(config.mysqlConn);
 
 var app = express();
 
+	connection.connect();
 // get_countries();
 app.get('/countries', function(req, res) {
-	get_countries(res, function(rows){
-		res.contentType('application/json');
-		res.end(rows);
-	});
+	get_countries(res);
 });
 
 
 //METHODS
 
-function get_countries(res, clbk) {
+function get_countries(res) {
 //db connect
-	connection.connect();
 	connection.query('SELECT countries.title as name FROM countries;', function(err, rows, fields) {
 		if (err) throw err;
-		connection.end();
-		clbk(JSON.stringify(rows));
+		outJSON(res, rows);
 	});
 }
 
 //sends to express
-function outJSON (data) {
+function outJSON (res, data) {
 	var json = JSON.stringify(data);
-	return (json);
+	res.contentType('application/json');
+	res.send(json);
 }
 
 
@@ -41,10 +38,17 @@ function outJSON (data) {
 app.listen(3000);
 console.log('Listening on port 3000');
 
-
+//END -> ctrl + c exit event
+process.on( 'SIGINT', function() {
+	connection.end(); //end conn. to db
+	console.log( "\ngracefully shutting down from  SIGINT (Crtl-C)" )
+	process.exit()
+})
 
 //SAMPLES
 //http://www.hawkee.com/snippet/9487/
+//Node.js and Express - Setting Content-Type for all Responses
+//http://www.switchonthecode.com/snippet-tutorials/nodejs-and-express-setting-content-type-for-all-responses
 
 // //http://metaduck.com/01-asynchronous-iteration-patterns.html
 // function insertCollection(collection, callback) {
