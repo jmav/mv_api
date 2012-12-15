@@ -19,7 +19,7 @@ app.get('/countries', function(req, res) {
 
 function get_countries(res) {
 //db connect
-	connection.query('SELECT countries.title as name FROM countries;', function(err, rows, fields) {
+	connection.query('SELECT * FROM allcountries;', function(err, rows, fields) {
 		if (err) throw err;
 		outJSON(res, rows);
 	});
