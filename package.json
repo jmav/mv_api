@@ -11,7 +11,8 @@
     "url": "https://github.com/nodejitsu/http-server.git"
   },
   "dependencies" : {
-    "mysql": "2.0.0-alpha5"
+    "mysql": "2.0.0-alpha5",
+    "express": "3.x"
   },
   "engines": {
     "node": ">=0.6"
