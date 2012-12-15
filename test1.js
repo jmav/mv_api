@@ -22,7 +22,7 @@ app.get('/countries', function(req, res) {
 function get_countries(res, clbk) {
 //db connect
 	connection.connect();
-	connection.query('SELECT countries.title FROM countries;', function(err, rows, fields) {
+	connection.query('SELECT countries.title as name FROM countries;', function(err, rows, fields) {
 		if (err) throw err;
 		connection.end();
 		clbk(JSON.stringify(rows));
