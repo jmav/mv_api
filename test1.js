@@ -24,7 +24,7 @@ app.get('/resortsIndex', function(req, res) {
 function getResortsIndex(res){
 	//http://www.mysqltutorial.org/stored-procedures-parameters.aspx
 	//http://stackoverflow.com/questions/10546956/is-there-a-driver-for-mysql-on-nodejs-that-supports-stored-procedures
-	var resortsQuery = 'SELECT ID as id, IDCountry as c_id, title as name FROM resorts WHERE visible = "True"';
+	var resortsQuery = 'SELECT ID as id, IDCountry as cid, title FROM resorts WHERE visible = "True"';
 	connection.query(resortsQuery, function(err, resorts, fields) {
 		if (err) throw err;
 
@@ -37,7 +37,20 @@ function getResortsIndex(res){
 				if (err) throw err;
 
 				rows[0].forEach(function(val) {
-					resort[val.field] = val.val;
+					if(val.val === 'True') {
+						resort[val.field] = true;
+					} else if(val.field === 'family' || val.field === 's_park'){
+						if(val.val !== null) {
+							var numArr = val.val.split(',');
+							for(var i in numArr) { numArr[i] = parseInt(numArr[i], 10);}
+							resort[val.field] = numArr;
+						} else {
+							resort[val.field] = [];
+						}
+					} else {
+						resort[val.field] = val.val;
+					}
+
 				});
 				callback(); // tell async that the iterator has completed
 
@@ -45,7 +58,8 @@ function getResortsIndex(res){
 
 		}, function(err) {
 			//console.log(resorts);
-			outJSON(res, resorts);
+			outJS(res, resorts, 'MV.country.data.resorts');
+			// outJSON(res, resorts, 'MV.country.data.resorts');
 		});
 
 	});
@@ -65,12 +79,17 @@ function outJSON (res, data) {
 	res.contentType('application/json');
 	res.send(json);
 }
-
-
+//sends to express
+function outJS (res, data, varName) {
+	var js = varName + '=' +  JSON.stringify(data);
+	res.contentType('application/text');
+	res.send(js);
+}
 
 //start app
 app.listen(3001);
 console.log('Listening on port 3001');
+console.log('demo at: http://localhost:3001/resortsIndex');
 //getResortsIndex();
 
 //END -> ctrl + c exit event
