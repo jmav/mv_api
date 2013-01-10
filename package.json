@@ -12,7 +12,8 @@
   },
   "dependencies" : {
     "mysql": "2.0.0-alpha5",
-    "express": "3.x"
+    "express": "3.x",
+    "async": "1.22"
   },
   "engines": {
     "node": ">=0.6"
