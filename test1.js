@@ -48,7 +48,12 @@ function getResortsIndex(res){
 							resort[val.field] = [];
 						}
 					} else {
-						resort[val.field] = val.val;
+						var valN = val.val.replace(',', '.');
+						if(isNaN(valN)){
+							resort[val.field] = valN;
+						} else {
+							resort[val.field] = parseFloat(valN, 10);
+						}
 					}
 
 				});
