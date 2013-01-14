@@ -39,7 +39,7 @@ function getResortsIndex(res){
 				rows[0].forEach(function(val) {
 					if(val.val === 'True') {
 						resort[val.field] = true;
-					} else if(val.field === 'family' || val.field === 's_park'){
+					} else if(val.field === 'family' || val.field === 's_park' || val.field === 'seg' || val.field === 'other'){
 						if(val.val !== null) {
 							var numArr = val.val.split(',');
 							for(var i in numArr) { numArr[i] = parseInt(numArr[i], 10);}
