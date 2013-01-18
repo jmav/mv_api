@@ -13,7 +13,8 @@
   "dependencies" : {
     "mysql": "2.0.0-alpha5",
     "express": "3.x",
-    "async": "1.22"
+    "async": "1.22",
+    "underscore": "1.4.3"
   },
   "engines": {
     "node": ">=0.6"
