@@ -13,6 +13,8 @@
   "dependencies" : {
     "mysql": "2.0.0-alpha5",
     "express": "3.x",
+    "node-sftp": "git@github.com:jmav/node-sftp.git",
+    "iconv": "1.2.x",
     "async": "1.22",
     "underscore": "1.4.3"
   },
