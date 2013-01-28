@@ -26,7 +26,11 @@ var actionTmpl =	'<strong>Save to resortsIndex</strong><br />'+
 					'<strong>Save to resorts</strong><br />'+
 					'<div><a href="/resorts/live">save to sftp live</a><br /></div>'+
 					'<div><a href="/resorts/test">save to sftp test</a><br /></div>'+
-					'<div><a href="/resorts/test1">save to sftp test1</a><br /></div>';
+					'<div><a href="/resorts/test1">save to sftp test1</a><br /></div>'+
+					'<strong>Save to info</strong><br />'+
+					'<div><a href="/info/live">save to sftp live</a><br /></div>'+
+					'<div><a href="/info/test">save to sftp test</a><br /></div>'+
+					'<div><a href="/info/test1">save to sftp test1</a><br /></div>';
 
 bootstrapRoutes();
 
@@ -38,6 +42,9 @@ function bootstrapRoutes() {
 	app.get('/resorts/:action', getResorts);
 	app.get('/resortsIndex', getResortsIndex);
 	app.get('/resortsIndex/:action', getResortsIndex);
+	app.get('/info', getInfo);
+	app.get('/info/:action', getInfo);
+
 }
 //METHODS
 
@@ -55,6 +62,41 @@ function getIndex(req, res){
 	res.send(template);
 }
 
+function getInfo(req, res) {
+	//Countries - group by lang
+	var action = req.params.action;
+
+	var queryStr = 'SELECT 80000 + SUM(nights) as nights '+
+		'FROM ( '+
+		'SELECT '+
+		'	booking2_cart.ID, '+
+		'	SUM(booking2_cart_content.stay) as nights '+
+		'FROM '+
+		'	booking2_cart '+
+		'LEFT JOIN '+
+		'	booking2_cart_content ON booking2_cart_content.IDCart = booking2_cart.ID '+
+		'LEFT JOIN '+
+		'	booking2_cart_content_persons ON booking2_cart_content_persons.IDContent=booking2_cart_content.ID '+
+		'WHERE booking2_cart.status="payment" '+
+		'AND booking2_cart.payment_status="completed" '+
+		'GROUP BY booking2_cart.ID) as nights_per_booking; ';
+
+	dbConProd1.query(queryStr, function(err, rows, fields) {
+		if (err) throw err;
+
+		rows = rows[0];
+		console.log(rows);
+
+		if(action){
+			var path = config.pathMap[action] || 'x'; //sym. error
+			var idxJs = 'MV.data.info=' +  JSON.stringify(rows);
+			outSftp(res, idxJs, 'data-info.js', path);
+		} else {
+			// outJS(res, rows, 'MV.data.info');
+			outJSON(res, rows, 'MV.data.countries');
+		}
+	});
+}
 
 function getCountries(req, res) {
 	//Countries - group by lang
@@ -65,7 +107,7 @@ function getCountries(req, res) {
 					'FROM countries_values '+
 					'WHERE field = "title" '+
 					'AND value > ""'+
-					'AND IDCountry NOT IN (23, 21) ';
+					'AND IDCountry NOT IN (23, 21, 28) ';
 
 	dbConProd1.query(queryStr, function(err, rows, fields) {
 		if (err) throw err;
