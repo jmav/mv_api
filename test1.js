@@ -72,7 +72,6 @@ hbs.registerHelper('link', function(object) {
 		);
 });
 hbs.registerHelper('select', function(object) {
-	console.log(object);
 	var html = '<select id="'+object.id+'" name="'+object.id+'" '+object.attr+'>';
 	_.each(object.values, function (item) {
 		//var selected = (inputFieldDesc.value() === item) ? 'selected="selected"' : '';
@@ -143,7 +142,6 @@ function getInfo(req, res) {
 		if (err) throw err;
 
 		rows = rows[0];
-		console.log(rows);
 
 		if(action){
 			var path = config.pathMap[action] || 'x'; //sym. error
@@ -311,13 +309,17 @@ function getResortsIndex(req, res){
 
 		}, function(err) {
 			//console.log(resorts);
+			//
+			resorts = _.sortBy(resorts, function(obj){
+				return obj.title;
+			});
 			if(action){
 				var path = config.pathMap[action] || 'x'; //sym. error
 				var idxJs = 'MV.country.data.resorts=' +  JSON.stringify(resorts);
 				outSftp(res, idxJs, 'resorts-index.js', path);
 			} else {
-				outJS(res, resorts, 'MV.country.data.resorts');
-				// outJSON(res, resorts, 'MV.country.data.resorts');
+				// outJS(res, resorts, 'MV.country.data.resorts');
+				outJSON(res, resorts, 'MV.country.data.resorts');
 			}
 		});
 
