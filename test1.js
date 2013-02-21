@@ -2,23 +2,93 @@
 //rest: https://github.com/visionmedia/express-resource
 
 var config = require('./config');
-var mysql = require('mysql');
-var express = require('express');
-var async = require('async');
-var _ = require('underscore');
-var fs = require('fs');
-var hbs = require('hbs');
-// var Iconv  = require('iconv').Iconv;
-// iconv = new Iconv('UTF-8', 'CP1250'); //convert  OR  // iconv = new Iconv('UTF-8', 'CP1250//TRANSLIT//IGNORE');
-var dbConLocal = mysql.createConnection(config.mysqlConn_local);
-var dbConProd1 = mysql.createConnection(config.mysqlConn_1);
+codelists = require('./codelists'),
+
+express = require('express'),
+// connectDomain = require("connect-domain"),
+domain = require('domain').create(),
+mysql = require('mysql'),
+async = require('async'),
+_ = require('underscore'),
+fs = require('fs'),
+hbs = require('hbs'),
+inspect = require('eyes').inspector(),
+moment = require('moment');
+
+// inspect = require('eyes').inspector({styles: {all: 'magenta'}}),
+// Iconv  = require('iconv').Iconv,
+// iconv = new Iconv('UTF-8', 'CP1250'), //convert  OR  // iconv = new Iconv('UTF-8', 'CP1250//TRANSLIT//IGNORE'),
 
 
-var app = express();
+var startTimer,
+app = express(),
+dbConLocal = mysql.createConnection(config.mysqlConn_local),
+dbConProd1 = mysql.createConnection(config.mysqlConn_1);
+
+//##### ENVIRONMENT VARIABLES
+var USELOCALDB = true;
+
+
+
+
+//##### ERROR HANDLING
+// domain.on("error", function(err) {
+// 	console.log("error:" + err.message);
+// });
+
+// domain.run(function(){
+// 	a + b;
+// });
+
+// app.use(connectDomain()).use(function(err, req, res, next) {
+// 	res.writeHeader(500, {'Content-Type' : "text/html"});
+// 	res.write("<h1>" + err.name + "</h1>");
+// 	next();
+// 	res.end("<p style='border:1px dotted red'>" + err.message + "</p>");
+// });
+
+
+
+if (USELOCALDB) dbConProd1 = dbConLocal;
+
+
+
+app.use(function(req, res, next) {
+	domain.on("error", function(err) {
+		console.log("error:" + err.message);
+		res.writeHeader(500, {'Content-Type' : "text/html"});
+		res.write("<h1>" + err.name + "</h1>");
+		res.end("<p style='border:1px dotted red'>" + err.message + "</p>");
+
+	});
+	domain.enter();
+	next();
+});
+
+// var d = domain.create();
+// d.on('error', function(er) {
+// 	console.error('Caught error!', er);
+// });
+// d.run(function() {
+// 	process.nextTick(function() {
+// 	setTimeout(function() { // simulating some various async stuff
+// 		fs.open('non-existent file', 'r', function(er, fd) {
+// 			if (er) throw er;
+// 		// proceed...
+// 		});
+// 	}, 100);
+// 	});
+// });
+
+
+// varr();
+
+//#####
 
 app.configure(function(){
 	app.set('view engine', 'hbs');
 	app.use(express.static('public'));
+	app.use(express.bodyParser());
 	// app.engine('.html', require('handlebars'));
 	// app.set('view engine', 'handlebars');
 	// app.set('views', __dirname + '/views');
@@ -31,27 +101,74 @@ app.configure(function(){
 
 
 var headerTmpl = '<div><a href="/">Home</a></div>';
-var actionTmpl =	'<strong>Save to resortsIndex</strong><br />'+
-					'<div><a href="/resortsIndex/live">save to sftp live</a><br /></div>'+
-					'<div><a href="/resortsIndex/test">save to sftp test</a><br /></div>'+
-					'<div><a href="/resortsIndex/test1">save to sftp test1</a><br /></div>'+
-					'<strong>Save to countries</strong><br />'+
-					'<div><a href="/countries/live">save to sftp live</a><br /></div>'+
-					'<div><a href="/countries/test">save to sftp test</a><br /></div>'+
-					'<div><a href="/countries/test1">save to sftp test1</a><br /></div>'+
-					'<strong>Save to resorts</strong><br />'+
-					'<div><a href="/resorts/live">save to sftp live</a><br /></div>'+
-					'<div><a href="/resorts/test">save to sftp test</a><br /></div>'+
-					'<div><a href="/resorts/test1">save to sftp test1</a><br /></div>'+
-					'<strong>Save to info</strong><br />'+
-					'<div><a href="/info/live">save to sftp live</a><br /></div>'+
-					'<div><a href="/info/test">save to sftp test</a><br /></div>'+
-					'<div><a href="/info/test1">save to sftp test1</a><br /></div>';
-var serverDest = ['live', 'test', 'test1'];
+
+var serverDest = _.keys(config.pathMap);
+
+var MV = { //Mountvacation workspace
+	date: {
+		next: function(day) { //0-6 sunday - shows upcomming days
+			var plusWeek = (moment().day() >= day) ? 7 : 0;
+			return moment().day(plusWeek + day).format();
+		}
+	},
+	api: { //api routines
+
+		getForecast: function(req, res) {
+			//Countries - group by lang
+			var action = req.params.action;
+
+			var queryStr = 'SELECT IDResort, date, summit_cond FROM myweather_dnevni_napoved;';
+			dbConProd1.query(queryStr, function(err, rows, fields) {
+				if (err) throw err;
+
+
+				var filteredList = _.chain(rows)
+				.filter(function(dts){ var dtsDay = moment(dts.date).day(); return dtsDay === 0 || dtsDay === 6; })
+				.groupBy(function(obj){return obj.IDResort;})
+				.value();
+
+				_.each(filteredList, function(obj, key){
+					var objS = {};
+					_.each(obj, function(val,i){
+						var sumPerc = codelists.weatherSymbolsPercentage[val.summit_cond];
+						if (typeof(sumPerc) === 'undefined'){
+							console.log('undefined weather symbol:', val);
+							sumPerc = 0;
+						}
+						var day = 'd' + moment(val.date).day();
+						objS[day] = [val.summit_cond, sumPerc];
+					});
+					filteredList[key] = objS;
+				});
+
+				if(action){
+					var path = config.pathMap[action] || 'x'; //sym. error
+					var idxJs = 'MV.data.forecast=' +  JSON.stringify(filteredList);
+					outSftp(res, idxJs, 'data-forecast.js', path);
+				} else {
+					// outJS(res, filteredList, 'MV.data.info');
+					outJSON(res, filteredList, 'MV.data.forecast');
+				}
+			});
+		},
+		getResortsIndexNew: function(req, res){
+
+		}
+
+	}
+};
+
+
 
 bootstrapRoutes();
 
 function bootstrapRoutes() {
+	app.all('*', function(req, res, next){
+		startTimer = new Date();
+		inspect(req.url);
+		next();
+	});
+
 	app.get('/', getIndex);
 	app.get('/countries', getCountries);
 	app.get('/countries/:action', getCountries);
@@ -59,9 +176,11 @@ function bootstrapRoutes() {
 	app.get('/resorts/:action', getResorts);
 	app.get('/resortsIndex', getResortsIndex);
 	app.get('/resortsIndex/:action', getResortsIndex);
+	app.get('/resortsIndexNew', MV.api.getResortsIndexNew);
 	app.get('/info', getInfo);
 	app.get('/info/:action', getInfo);
-
+	app.get('/forecast', MV.api.getForecast);
+	app.get('/forecast/:action', MV.api.getForecast);
 }
 
 
@@ -88,9 +207,7 @@ hbs.registerHelper('select', function(object) {
 
 function getIndex(req, res){
 
-	var data = {
-		actionTmpl: new hbs.SafeString(actionTmpl)
-	};
+	var data = {};
 
 	data.routes = _.map(app.routes.get, function(val, key){
 		return {url: val.path, text: val.path};
@@ -120,6 +237,7 @@ function getIndex(req, res){
 }
 
 function getInfo(req, res) {
+
 	//Countries - group by lang
 	var action = req.params.action;
 
@@ -241,7 +359,6 @@ function getResorts(req, res){
 		// countryList = _.pluck(rows, 'IDCountry');
 		// countryList = _.union(countryList);
 
-		//outJSON(res, countryList+'aa');
 	});
 }
 
@@ -326,7 +443,9 @@ function getResortsIndex(req, res){
 	});
 }
 
-
+function printTime(){
+	console.log('it took: ' + ((new Date() - startTimer)/1000) + ' s from req startTimer');
+}
 
 //sends to SFTP
 function outSftp (res, data, file, path) {
@@ -334,6 +453,7 @@ function outSftp (res, data, file, path) {
 	// var dataCp = iconv.convert(data);
 	var dataCp = data;
 	config.sftp_1.home = path;
+	printTime();
 
 	sftp = new sftp(
 		config.sftp_1,
@@ -348,6 +468,7 @@ function outSftp (res, data, file, path) {
 			sftp.writeFile(file, dataCp, "ascii", function(err) {
 				if (err) throw err;
 				var msg = "It's saved as: "+path+'/'+file + ' (' + (dataCp.length/1024).toFixed(2) + ' kB)';
+				printTime();
 				console.log(msg);
 				res.send(msg);
 			});
@@ -358,6 +479,7 @@ function outSftp (res, data, file, path) {
 //sends to express
 function outJSON (res, data) {
 	var json = JSON.stringify(data);
+	printTime();
 	res.contentType('application/json');
 	res.send(json);
 }
@@ -365,6 +487,7 @@ function outJSON (res, data) {
 //sends to express
 function outJS (res, data, varName) {
 	var js = varName + '=' +  JSON.stringify(data);
+	printTime();
 	res.contentType('application/text');
 	res.send(js);
 }

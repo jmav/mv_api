@@ -10,8 +10,7 @@
     "type": "git",
     "url": "https://github.com/nodejitsu/http-server.git"
   },
-  "dependencies" : {
-    //install handlebars globaly
+  "dependencies": {
     "mysql": "2.0.0-alpha5",
     "express": "3.x",
     "node-sftp": "git@github.com:jmav/node-sftp.git",
@@ -19,9 +18,14 @@
     "async": "1.22",
     "underscore": "1.4.x",
     "handlebars": "1.0.x",
-    "hbs": "2.0.1"
+    "hbs": "2.0.1",
+    "moment": "~2.0.0",
+    "connect-domain": "~0.4.1"
+  },
+  "devDependencies": {
+    "eyes": "*"
   },
   "engines": {
-    "node": ">=0.6"
+    "node": ">=0.8"
   }
 }
