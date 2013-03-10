@@ -26,7 +26,7 @@ dbConLocal = mysql.createConnection(config.mysqlConn_local),
 dbConProd1 = mysql.createConnection(config.mysqlConn_1);
 
 //##### ENVIRONMENT VARIABLES
-var USELOCALDB = true;
+var USELOCALDB = false;
 
 
 
@@ -112,15 +112,16 @@ var MV = { //Mountvacation workspace
 		}
 	},
 	api: { //api routines
+		readImageDir: function(req,res){
 
+
+		},
 		getForecast: function(req, res) {
-			//Countries - group by lang
 			var action = req.params.action;
 
 			var queryStr = 'SELECT IDResort, date, summit_cond FROM myweather_dnevni_napoved;';
 			dbConProd1.query(queryStr, function(err, rows, fields) {
 				if (err) throw err;
-
 
 				var filteredList = _.chain(rows)
 				.filter(function(dts){ var dtsDay = moment(dts.date).day(); return dtsDay === 0 || dtsDay === 6; })
@@ -128,23 +129,26 @@ var MV = { //Mountvacation workspace
 				.value();
 
 				_.each(filteredList, function(obj, key){
-					var objS = {};
+					var objS = {d6:'', d0:''}; //V8 doesn't have insertation order
 					_.each(obj, function(val,i){
 						var sumPerc = codelists.weatherSymbolsPercentage[val.summit_cond];
 						if (typeof(sumPerc) === 'undefined'){
 							console.log('undefined weather symbol:', val);
 							sumPerc = 0;
 						}
-						var day = 'd' + moment(val.date).day();
-						objS[day] = [val.summit_cond, sumPerc];
+						var day = moment(val.date).day();
+						objS['d'+day] = [val.summit_cond, sumPerc, moment(val.date).format('D.M.YYYY'), day];
 					});
 					filteredList[key] = objS;
 				});
 
 				if(action){
-					var path = config.pathMap[action] || 'x'; //sym. error
+		 			action = action.split(',');
 					var idxJs = 'MV.data.forecast=' +  JSON.stringify(filteredList);
-					outSftp(res, idxJs, 'data-forecast.js', path);
+					_.each(action, function(server){
+						var path = config.pathMap[server] || 'x'; //sym. error
+						outSftp(res, idxJs, 'data-forecast.js', path);
+					});
 				} else {
 					// outJS(res, filteredList, 'MV.data.info');
 					outJSON(res, filteredList, 'MV.data.forecast');
@@ -152,9 +156,129 @@ var MV = { //Mountvacation workspace
 			});
 		},
 		getResortsIndexNew: function(req, res){
+			var action = req.params.action;
+			var diskImgList = fs.readdirSync(config.baseImageUrl);
 
+			var queryStr = 'SELECT resorts.ID as rid, '+
+				'	IDCountry as cid, '+
+				'	resorts.title as title, '+
+				'	indexes.index as idx, '+
+				'	resorts_values.field, '+
+				'	LEFT(resorts_values.`value`, 20) as valorig, '+
+				'	IF(LEFT(field,4) = "seg_" AND resorts_values.`value` > "", TRUE, resorts_values.`value`) as val '+
+				'FROM resorts '+
+				'INNER JOIN indexes ON resorts.ID = indexes.tableID '+
+				'INNER JOIN resorts_values ON resorts.ID = resorts_values.IDResort '+
+
+				'WHERE resorts.visible = "True" '+
+				'AND indexes.table = "resorts" '+
+				'AND indexes.`default` = TRUE '+
+				'AND (resorts_values.lang = "en" OR resorts_values.lang = "") '+
+				'AND resorts_values.`value` > "" '+
+				'AND field IN("slopes_all","slopes_blue","slopes_red","slopes_black","slopes_green", '+
+				'	"slopes_number","slopes_cross","artificial_snow","airport_distance","gastronomy_restaurants", '+
+				'	"gastronomy_bars","sealevel_minheight","sealevel_maxheight","images","seg_family_ski", '+
+				'	"seg_free_style","seg_free_ride","seg_romantic","seg_cross_country","seg_ski_party","seg_ski_spa", '+
+				'	"publicw_thermal_spa","child_slope","child_lift","child_care","child_carpet_lift","child_park", '+
+				'	"snowboard_halfpipe","snowboard_funpark","snowboard_corner","snowboard_wave","snowboard_cross", '+
+				'	"snowboard_jumps","snowboard_slides","snowboard_boxen","snowboard_rides", "priority")';
+
+			dbConProd1.query(queryStr, function(err, rows, fields) {
+				if (err) throw err;
+
+				var resorts = _.groupBy(rows, function(obj){return obj.rid;});
+
+				var resFiltered = _.map(resorts, function(obj, key, list){
+					var resObj = {
+						// priority: obj.priority,
+						id: obj[0].rid,
+						cid: obj[0].cid,
+						title: obj[0].title,
+						idx: obj[0].idx,
+						seg: [],
+						s_park: [],
+						family: [],
+						other: []
+					};
+
+					_.each(obj, function(val){ //each field
+						var fld = codelists.resortFieldsShort[val.field]; //|| val.field;
+
+						if(fld === 'img'){ //images
+							var strToArr = eval(val.val)[0] || '';
+							var exists = diskImgList.indexOf("resort_"+obj[0].rid+"_1_sm.jpg") !== -1;//check for maps
+							if (exists) {
+								resObj[fld] = 'map';
+							} else {
+								resObj[fld] = strToArr || 'no-image';
+							}
+							return;
+						}
+
+						if(_.isUndefined(fld)){
+							_.each(codelists.resortsFieldsGroups, function(group, searchP){
+								if(val.field.indexOf(searchP) === 0) resObj[group.groupName].push(group[val.field]);
+							});
+						} else {
+							var valN = parseInt(val.val, 10);//pretvorba num bol string
+							if(_.isNaN(val.val)) valN = val.val;
+							if(!_.isNull(valN)) resObj[fld] = valN;
+						}
+					});
+					return resObj;
+				});
+
+				resFiltered = _.sortBy(resFiltered, function(objF){
+					// console.log(objF, key, list);
+					return objF.pri;
+				});
+
+				if(action){
+		 			action = action.split(',');
+					var idxJs = 'MV.country.data.resorts=' +  JSON.stringify(resFiltered);
+					_.each(action, function(server){
+						var path = config.pathMap[server] || 'x'; //sym. error
+						outSftp(res, idxJs, 'resorts-index.js', path);
+					});
+				} else {
+					// outJS(res, resFiltered, 'MV.country.data.resorts');
+					outJSON(res, resFiltered, 'MV.country.data.resorts');
+				}
+			});
+		},
+		getAccShortDesc: function(req, res) {
+			var action = req.params.action;
+
+			var queryStr = 'SELECT IDAccommodation as aid, lang, CONCAT(LEFT(`value`, LOCATE(" ", `value`, 120)), "...") as val '+
+				'FROM accommodations '+
+				'INNER JOIN accommodations_values ON accommodations.ID = accommodations_values.IDAccommodation  '+
+				'WHERE IDResort = 9436 '+
+				'AND field = "description_short" '+
+				'AND active = true '+
+				'AND `value` > "" ';
+
+			dbConProd1.query(queryStr, function(err, rows, fields) {
+				if (err) throw err;
+
+				var filteredList = _.chain(rows)
+				// .filter(function(dts){ var dtsDay = moment(dts.date).day(); return dtsDay === 0 || dtsDay === 6; })
+				//.groupBy(function(obj){return obj.aid;})
+				.groupBy(function(obj){return obj.lang;})
+				.value();
+
+				if(action){
+		 			action = action.split(',');
+					var idxJs = 'MV.data.accShortDesc=' +  JSON.stringify(filteredList);
+					_.each(action, function(server){
+						var path = config.pathMap[server] || 'x'; //sym. error
+						outSftp(res, idxJs, 'data-accShortDesc.js', path);
+					});
+				} else {
+					// outJS(res, filteredList, 'MV.data.info');
+					outJSON(res, filteredList, 'MV.data.accShortDesc');
+				}
+			});
 		}
-
 	}
 };
 
@@ -174,13 +298,16 @@ function bootstrapRoutes() {
 	app.get('/countries/:action', getCountries);
 	app.get('/resorts', getResorts);
 	app.get('/resorts/:action', getResorts);
-	app.get('/resortsIndex', getResortsIndex);
-	app.get('/resortsIndex/:action', getResortsIndex);
+	// app.get('/resortsIndex', getResortsIndex);
+	// app.get('/resortsIndex/:action', getResortsIndex);
 	app.get('/resortsIndexNew', MV.api.getResortsIndexNew);
+	app.get('/resortsIndexNew/:action', MV.api.getResortsIndexNew);
 	app.get('/info', getInfo);
 	app.get('/info/:action', getInfo);
 	app.get('/forecast', MV.api.getForecast);
 	app.get('/forecast/:action', MV.api.getForecast);
+	app.get('/accShortDesc', MV.api.getAccShortDesc);
+	app.get('/accShortDesc/:action', MV.api.getAccShortDesc);
 }
 
 
@@ -191,7 +318,7 @@ hbs.registerHelper('link', function(object) {
 		);
 });
 hbs.registerHelper('select', function(object) {
-	var html = '<select id="'+object.id+'" name="'+object.id+'" '+object.attr+'>';
+	var html = '<select size="8" id="'+object.id+'" name="'+object.id+'" '+object.attr+'>';
 	_.each(object.values, function (item) {
 		//var selected = (inputFieldDesc.value() === item) ? 'selected="selected"' : '';
 		html += '<option value="' + item.value + '">' + item.text + '</option>';
@@ -262,9 +389,12 @@ function getInfo(req, res) {
 		rows = rows[0];
 
 		if(action){
-			var path = config.pathMap[action] || 'x'; //sym. error
+			action = action.split(',');
 			var idxJs = 'MV.data.info=' +  JSON.stringify(rows);
-			outSftp(res, idxJs, 'data-info.js', path);
+			_.each(action, function(server){
+				var path = config.pathMap[server] || 'x'; //sym. error
+				outSftp(res, idxJs, 'data-info.js', path);
+			});
 		} else {
 			// outJS(res, rows, 'MV.data.info');
 			outJSON(res, rows, 'MV.data.countries');
@@ -300,10 +430,12 @@ function getCountries(req, res) {
 		});
 
 		if(action){
-			var path = config.pathMap[action] || 'x'; //sym. error
+			action = action.split(',');
 			var idxJs = 'MV.data.countries=' +  JSON.stringify(countryGroup);
-			//console.log(idxJs, 'data-countries.js', path);
-			outSftp(res, idxJs, 'data-countries.js', path);
+			_.each(action, function(server){
+				var path = config.pathMap[server] || 'x'; //sym. error
+				outSftp(res, idxJs, 'data-countries.js', path);
+			});
 		} else {
 			// outJS(res, countryGroup, 'MV.data.countries');
 			outJSON(res, countryGroup, 'MV.data.countries');
@@ -347,10 +479,12 @@ function getResorts(req, res){
 		});
 
 		if(action){
-			var path = config.pathMap[action] || 'x'; //sym. error
+			action = action.split(',');
 			var idxJs = 'MV.data.resorts=' +  JSON.stringify(countryGroup);
-			//console.log(idxJs, 'data-resorts.js', path);
-			outSftp(res, idxJs, 'data-resorts.js', path);
+			_.each(action, function(server){
+				var path = config.pathMap[server] || 'x'; //sym. error
+				outSftp(res, idxJs, 'data-resorts.js', path);
+			});
 		} else {
 			//outJS(res, countryGroup, 'MV.data.resorts');
 			outJSON(res, countryGroup, 'MV.data.countries');
@@ -431,9 +565,12 @@ function getResortsIndex(req, res){
 				return obj.title;
 			});
 			if(action){
-				var path = config.pathMap[action] || 'x'; //sym. error
+	 			action = action.split(',');
 				var idxJs = 'MV.country.data.resorts=' +  JSON.stringify(resorts);
-				outSftp(res, idxJs, 'resorts-index.js', path);
+				_.each(action, function(server){
+					var path = config.pathMap[server] || 'x'; //sym. error
+					outSftp(res, idxJs, 'resorts-index.js', path);
+				});
 			} else {
 				// outJS(res, resorts, 'MV.country.data.resorts');
 				outJSON(res, resorts, 'MV.country.data.resorts');
@@ -467,7 +604,7 @@ function outSftp (res, data, file, path) {
 			//Write sample file
 			sftp.writeFile(file, dataCp, "ascii", function(err) {
 				if (err) throw err;
-				var msg = "It's saved as: "+path+'/'+file + ' (' + (dataCp.length/1024).toFixed(2) + ' kB)';
+				var msg = "It's saved as: "+path+'/'+file + ' (' + (dataCp.length/1024).toFixed(2) + ' kB - '+dataCp.length+')';
 				printTime();
 				console.log(msg);
 				res.send(msg);
@@ -506,6 +643,7 @@ process.on( 'SIGINT', function() {
 	console.log( "\ngracefully shutting down from  SIGINT (Crtl-C)" );
 	process.exit();
 });
+process.setMaxListeners(14);
 
 //SAMPLES
 //http://www.hawkee.com/snippet/9487/
