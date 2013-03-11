@@ -220,7 +220,7 @@ var MV = { //Mountvacation workspace
 								if(val.field.indexOf(searchP) === 0) resObj[group.groupName].push(group[val.field]);
 							});
 						} else {
-							var valN = parseInt(val.val, 10);//pretvorba num bol string
+							var valN = parseFloat(val.val.replace('False', 0), 10);//pretvorba num bol string
 							if(_.isNaN(val.val)) valN = val.val;
 							if(!_.isNull(valN)) resObj[fld] = valN;
 						}
