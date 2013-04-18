@@ -586,7 +586,7 @@ function printTime(){
 
 //sends to SFTP
 function outSftp (res, data, file, path) {
-	var sftp = require('node-sftp');
+	var sftp = require('sftp');
 	// var dataCp = iconv.convert(data);
 	var dataCp = data;
 	config.sftp_1.home = path;
