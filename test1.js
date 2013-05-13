@@ -589,11 +589,11 @@ function outSftp (res, data, file, path) {
 	var sftp = require('sftp');
 	// var dataCp = iconv.convert(data);
 	var dataCp = data;
-	config.sftp_1.home = path;
+	config.sftp_dedi.home = path;
 	printTime();
 
 	sftp = new sftp(
-		config.sftp_1,
+		config.sftp_dedi,
 		function(err) {
 			//Error
 			if (err) throw err;
