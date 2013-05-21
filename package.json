@@ -11,7 +11,7 @@
     "url": "https://github.com/nodejitsu/http-server.git"
   },
   "dependencies": {
-    "mysql": "2.0.0-alpha5",
+    "mysql": "~2.0.0-alpha8",
     "express": "3.x",
     "iconv": "1.2.x",
     "async": "1.22",
@@ -20,7 +20,11 @@
     "hbs": "2.0.1",
     "moment": "~2.0.0",
     "connect-domain": "~0.4.1",
-    "sftp": "git://github.com/alanmoran/node-sftp.git"
+    "sftp": "git://github.com/alanmoran/node-sftp.git",
+    "q": "~0.9.3",
+    "sitemap": "git://github.com/jmav/sitemap.js.git",
+    "pretty-data": "~0.40.0",
+    "log4js": "~0.6.4"
   },
   "devDependencies": {
     "eyes": "*"
