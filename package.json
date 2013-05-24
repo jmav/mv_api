@@ -14,7 +14,6 @@
     "mysql": "~2.0.0-alpha8",
     "express": "3.x",
     "iconv": "1.2.x",
-    "async": "1.22",
     "underscore": "1.4.x",
     "handlebars": "1.0.x",
     "hbs": "2.0.1",
@@ -24,7 +23,8 @@
     "q": "~0.9.3",
     "sitemap": "git://github.com/jmav/sitemap.js.git",
     "pretty-data": "~0.40.0",
-    "log4js": "~0.6.4"
+    "log4js": "~0.6.4",
+    "async": "~0.2.8"
   },
   "devDependencies": {
     "eyes": "*"
