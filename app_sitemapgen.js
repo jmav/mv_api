@@ -81,7 +81,10 @@ _(countries).each( function( value, key, countries ) {
 			return sm.saveOverSftp(data, conf);
 		})
 		.then(
-			function(rows){logger.info('done: ' + value);},
+			function(rows){
+				logger.info('done: ' + value);
+				if(value === 'cz' )process.exit(code=0);
+			},
 			function(err){logger.error(err);}
 		)
 });
