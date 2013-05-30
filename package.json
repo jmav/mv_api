@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "description": "Test of mysql",
   "scripts": {
-    "start": "node ./test1.js"
+    "start": "node ./app-country-index.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
     "sftp": "git://github.com/alanmoran/node-sftp.git",
     "q": "~0.9.3",
     "sitemap": "git://github.com/jmav/sitemap.js.git",
+    "node-mysql-q": "git+ssh://git@bitbucket.org:jmav/node-mysql-q.git",
     "pretty-data": "~0.40.0",
     "log4js": "~0.6.4",
     "async": "~0.2.8"
