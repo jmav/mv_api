@@ -6,24 +6,11 @@ var config = {
 		user     : '',
 		password : ''
 	},
-	mysqlConn_1: {
-		host     : '',
-		database : '',
-		user     : '',
-		password : ''
-	},
-	sftp_1: {
-		host       : '',
-		home       : '',
-		username   : '',
-		password   : '',
-		port       : ''
-	},
 	pathMap: {
 		live : 'live',
-		test : 'test',
-		test1: 'test1'
-	}
+		test : 'test'
+	},
+	baseImageUrl: ''
 };
 
 module.exports = config;
