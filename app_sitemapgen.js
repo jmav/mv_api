@@ -24,6 +24,7 @@ dbConProd1 = mysql.createConnection(config.mysqlConn_1);
 
 
 var getCountries = function(lang) {
+	lang = lang || 'en';
 	var deferred = Q.defer();
 	config.sftp_dedi.home = config.pathMap['live_sitemap'] + lang; //set sftp path
 
@@ -63,8 +64,8 @@ var getCountries = function(lang) {
 
 // getCountries('en')
 	// .then(function(){getCountries('fr');});
-
-var countries = ['en', 'si', 'hr', 'it', 'de', 'fr', 'pl', 'cz'];
+var countries = ['', 'si', 'hr', 'it', 'de', 'fr', 'pl', 'cz', 'en'];
+// var countries = ['', 'en'];
 
 _(countries).each( function( value, key, countries ) {
 
@@ -83,7 +84,12 @@ _(countries).each( function( value, key, countries ) {
 		.then(
 			function(rows){
 				logger.info('done: ' + value);
-				if(value === 'cz' )process.exit(code=0);
+				if(value === 'en'){
+					setTimeout(function(){
+						logger.info('Process complete ' + value);
+						process.exit(code=0);
+					}, 5000);
+				}
 			},
 			function(err){logger.error(err);}
 		)
