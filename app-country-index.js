@@ -24,9 +24,9 @@
 		replaceConsole: true
 	});
 
-	var logger = log4js.getLogger();
-
-	var startTimer,
+	var logger = log4js.getLogger(),
+	startTimer,
+	timeMeasure = true,
 	app = express(),
 	dbConLocal = mysql.createConnection(config.mysqlConn_local),
 	dbConProd1 = mysql.createConnection(config.mysqlConn_1);
@@ -572,7 +572,7 @@
 	}
 
 	function printTime(){
-		console.log('it took: ' + ((new Date() - startTimer)/1000) + ' s from req startTimer');
+		if(timeMeasure) console.log('it took: ' + ((new Date() - startTimer)/1000) + ' s from req startTimer');
 	}
 
 	//sends to SFTP
@@ -638,7 +638,8 @@
 	cPath = argv.p;
 
 	if(cServer && cPath){
-		startTimer = new Date();
+		timeMeasure = false;
+		if(timeMeasure) startTimer = new Date();
 		console.log('Command line mode...');
 		var req = req = {params: {action: cServer}},
 		res = {
