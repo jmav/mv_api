@@ -25,7 +25,8 @@
     "node-mysql-q": "git+ssh://git@bitbucket.org:jmav/node-mysql-q.git",
     "pretty-data": "~0.40.0",
     "log4js": "~0.6.4",
-    "async": "~0.2.8"
+    "async": "~0.2.8",
+    "optimist": "~0.5.1"
   },
   "devDependencies": {
     "eyes": "*"
