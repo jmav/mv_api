@@ -3,6 +3,8 @@
 var updateCache = function(){
 	var list = $('input:checked:not(.select-all)');
 
+	if(list.length > 8) alert("Do not select more than 8 URLs at once !!! \n Wait to complete !'")
+
 	_.each(list, function(el){
 
 		update(el);
