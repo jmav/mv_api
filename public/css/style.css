@@ -18,3 +18,16 @@ body {position: relative;}
 	padding: 2px 5px;
 	text-align: center;
 }
+
+.loading{
+	background: #ee8a45 url('img/loader.gif') no-repeat 4px;
+	padding-left: 20px;
+}
+
+.done{
+	background: #69ee4b;
+}
+
+.time, .sel-all{
+	font-size: 11px;
+}
