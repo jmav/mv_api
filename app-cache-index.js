@@ -151,7 +151,6 @@ var MV = {
 	},
 	getSearch: function(req, res){
 		var q = req.body;
-		console.log(q);
 
 		MV.urlSearch('%'+q.search+'%', q.lang, q.type)
 			.then(
