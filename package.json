@@ -20,13 +20,14 @@
     "moment": "~2.0.0",
     "connect-domain": "~0.4.1",
     "sftp": "git://github.com/alanmoran/node-sftp.git",
-    "q": "~0.9.3",
+    "q": "~0.9.6",
     "sitemap": "git://github.com/jmav/sitemap.js.git",
     "node-mysql-q": "git+ssh://git@bitbucket.org:jmav/node-mysql-q.git",
     "pretty-data": "~0.40.0",
     "log4js": "~0.6.4",
     "async": "~0.2.8",
-    "optimist": "~0.5.1"
+    "optimist": "~0.5.1",
+    "portscanner": "~0.1.3"
   },
   "devDependencies": {
     "eyes": "*"

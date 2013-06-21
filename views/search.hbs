@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Mountvacation test panel</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<!-- Le styles -->
+	<link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet">
+	<style type="text/css">
+		body { padding-top: 60px; padding-bottom: 40px; }
+	</style>
+	<link href="http://twitter.github.com/bootstrap/assets/css/bootstrap-responsive.css" rel="stylesheet">
+
+	<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+		<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+	<!-- Le fav and touch icons -->
+	<link rel="shortcut icon" href="http://twitter.github.com/bootstrap/assets/images/favicon.ico">
+	<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="http://twitter.github.com/bootstrap/assets/images/apple-touch-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="http://twitter.github.com/bootstrap/assets/images/apple-touch-icon-114x114.png">
+</head>
+<body>
+
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<a class="brand" href="#">Mountvacation testing panel</a>
+				<div class="nav-collapse">
+					<ul class="nav">
+						<li class="active"><a href="/search">Search URLs</a></li>
+						<!-- <li><a href="/status">Status</a></li> -->
+					</ul>
+				</div><!--/.nav-collapse -->
+			</div>
+		</div>
+	</div>
+
+	<div class="container">
+
+		<form class="form" method="post" >
+			<fieldset>
+				<legend>Search for url</legend>
+				<div class="control-group">
+					<div class="input-append">
+						<input type="text" class="span5" name="search" id="search">
+						<button class="btn btn-primary" type="submit">Search</button>
+					</div>
+						<p class="help-block">For space use "-"</p>
+				</div>
+
+				<div class="control-group">
+					<label class="control-label" for="optionsCheckbox">Select language</label>
+					<div class="controls">
+						<label class="checkbox inline"><input type="checkbox" name="lang" value="en" checked="checked" >en</label>
+						<label class="checkbox inline"><input type="checkbox" name="lang" value="si" >si</label>
+						<label class="checkbox inline"><input type="checkbox" name="lang" value="it" >it</label>
+						<label class="checkbox inline"><input type="checkbox" name="lang" value="fr" >fr</label>
+						<label class="checkbox inline"><input type="checkbox" name="lang" value="de" >de</label>
+						<label class="checkbox inline"><input type="checkbox" name="lang" value="pl" >pl</label>
+						<label class="checkbox inline"><input type="checkbox" name="lang" value="cz" >cz</label>
+						<label class="checkbox inline"><input type="checkbox" name="lang" value="hr" >hr</label>
+					</div>
+				</div>
+				<div class="control-group" style="display: none;">
+					<label class="control-label" for="optionsCheckbox">Type</label>
+					<div class="controls">
+						<label class="checkbox inline"><input type="checkbox" name="type" value="acc" checked="checked" >Accomodation</label>
+						<label class="checkbox inline"><input type="checkbox" name="type" value="res" checked="checked" >Resort</label>
+						<label class="checkbox inline"><input type="checkbox" name="type" value="cou" checked="checked" >Country</label>
+					</div>
+				</div>
+			</fieldset>
+		</form>
+
+		<hr />
+
+		{{#if result}}
+		<table class="table table-condensed table-bordered">
+			<thead>
+				<tr>
+					<th>IDCountry</th>
+					<th>IDResort</th>
+					<th>IDAccommodation</th>
+					<th>URL</th>
+				</tr>
+			</thead>
+			<tbody>
+				{{#each result}}
+					<tr>
+						<td>{{this.IDCountry}}</td>
+						<td>{{this.IDResort}}</td>
+						<td>{{this.IDAccommodation}}</td>
+						<td><a target="new" href="http://www.mountvacation.com{{this.url}}">{{this.url}}</a></td>
+					</tr>
+					<!--{{@index}}{{@key}}-->
+				{{/each}}
+			</tbody>
+		</table>
+		{{/if}}
+
+		<footer>
+			<p>&copy; Mountvacation.com 2013</p>
+		</footer>
+	</div> <!-- /container -->
+
+	<!-- Le javascript
+	================================================== -->
+	<!-- Placed at the end of the document so the pages load faster -->
+	<script src="http://code.jquery.com/jquery.min.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-transition.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-alert.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-modal.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-dropdown.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-scrollspy.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-tab.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-tooltip.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-popover.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-button.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-collapse.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-carousel.js"></script>
+	<script src="https://raw.github.com/twitter/bootstrap/master/js/bootstrap-typeahead.js"></script>
+</body>
+</html>

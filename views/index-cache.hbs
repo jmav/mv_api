@@ -2,16 +2,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
-	<title>Cache update admin page</title>
+	<title>Update resorts page cache tool </title>
+	<link href='http://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="/css/style.css">
 	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
 	<script src="/js/index-cache.js"></script>
 </head>
 <body>
-	<h2>List of available URLs</h2>
+	<h1>Update resorts page cache tool</h1>
 
-	<ul>
+	<div class="actions">
+		<div class="wrapper">
+			<a href="/logout">Logout</a>
+		</div>
+	</div>
+
+	<h3>List of available URLs</h3>
+
+	<ul class="list">
 
 	{{#each urls}}
 	<li>

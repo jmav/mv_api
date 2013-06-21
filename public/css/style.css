@@ -1,4 +1,7 @@
-body {position: relative;}
+body {
+	position: relative;
+	font-family: 'Titillium Web', sans-serif;
+}
 .console {
 	position: absolute;
 	right: 0;
@@ -30,4 +33,19 @@ body {position: relative;}
 
 .time, .sel-all{
 	font-size: 11px;
+}
+
+.actions{
+	background-color: #00a4f8;
+	width: 100%;
+	color: #fff;
+}
+.actions span{
+	padding: 0 10px;
+	line-height: 30px;
+}
+.actions a{
+	padding: 5px;
+	color: #fff;
+	display: block;
 }
