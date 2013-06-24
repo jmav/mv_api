@@ -27,6 +27,12 @@ var app = express();
 moment.lang('en-gb');
 
 
+//error handling
+// ECONNRESET error
+dbConProd1.on('error', function (exc) {
+	console.error("ignoring exception: " + exc);
+});
+
 
 var MV = {
 	serverPort: 3005,
