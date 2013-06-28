@@ -25,7 +25,7 @@ dbConLocal = mysql.createConnection(config.mysqlConn_local),
 dbConProd1 = mysql.createConnection(config.mysqlConn_1),
 connectionState = false;
 
-dbConProd1 = dbConLocal; //set to local
+// dbConProd1 = dbConLocal; //set to local
 
 
 
