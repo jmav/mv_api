@@ -17,21 +17,77 @@ log4js = require('log4js');
 var inspect = require('eyes').inspector();
 
 // init
+
+moment.lang('en-gb');
+
 var logger = log4js.getLogger(),
 dbConLocal = mysql.createConnection(config.mysqlConn_local),
-dbConProd1 = mysql.createConnection(config.mysqlConn_1);
+dbConProd1 = mysql.createConnection(config.mysqlConn_1),
+connectionState = false;
+
+dbConProd1 = dbConLocal; //set to local
+
+
 
 //app
 var app = express();
 
-moment.lang('en-gb');
 
 
-//error handling
+
+// error handling
 // ECONNRESET error
-dbConProd1.on('error', function (exc) {
-	console.error("ignoring exception: " + exc);
-});
+// dbConProd1.on('close', function (err) {
+// 	logger.error('mysqldb conn close');
+// 	connectionState = false;
+// });
+
+// dbConProd1.on('error', function (err) {
+// 	logger.error('mysqldb error: ' + err);
+// 	connectionState = false;
+// });
+
+
+
+function attemptConnection(connection) {
+
+	if(!connectionState){
+		connection = mysql.createConnection(connection.config);
+
+		connection.connect(function (err) {
+			// connected! (unless `err` is set)
+			if (err) {
+				logger.error('mysql db unable to connect: ' + err);
+				connectionState = false;
+			} else {
+				logger.info('mysql connect!');
+				connectionState = true;
+			}
+		});
+
+		connection.on('close', function (err) {
+			logger.error('mysqldb conn close');
+			connectionState = false;
+		});
+
+		connection.on('error', function (err) {
+			logger.error('mysqldb error: ' + err);
+			if (!err.fatal) {
+				//throw err;
+			}
+
+			if (err.code !== 'PROTOCOL_CONNECTION_LOST') {
+				//throw err;
+			} else {
+				connectionState = false;
+				attemptConnection(dbConProd1);
+			}
+		});
+	}
+};
+
+attemptConnection(dbConProd1);
+
 
 
 var MV = {
