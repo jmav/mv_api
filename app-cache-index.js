@@ -27,8 +27,6 @@ connectionState = false;
 
 // dbConProd1 = dbConLocal; //set to local
 
-
-
 //app
 var app = express();
 
@@ -245,7 +243,8 @@ app.configure(function(){
 	// app.use(MV.auth); //auth for all
 	app.set('view engine', 'hbs');
 	app.use(express.bodyParser());
-	app.use(express.static('public'));
+	app.use(express.static(__dirname + '/public'));
+	app.set('views', __dirname + '/views');
 });
 
 //routes
