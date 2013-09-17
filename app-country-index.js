@@ -454,6 +454,7 @@
 
 		dbConProd1.query(queryStr, function(err, rows, fields) {
 			if (err) throw err;
+			rows.push({ IDCountry: 19, ID: 76, title: 'Vogel', index: 'bohinj' }); //fake insert
 
 			// countryGroup = _.groupBy(rows, function(val){ return val.IDCountry; });
 
