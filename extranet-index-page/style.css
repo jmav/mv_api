@@ -1,0 +1,77 @@
+@import url(http://weloveiconfonts.com/api/?family=fontawesome);
+
+/* fontawesome */
+[class*="fontawesome-"]:before {
+	font-family: 'FontAwesome', sans-serif;
+	color: #1A76C6;
+}
+
+a:hover [class*="fontawesome-"]:before {
+	color: #fff;
+}
+
+html, body, ul, li{ /* reset */
+	padding: 0;
+	margin: 0;
+}
+body{
+	font-family: 'Raleway', sans-serif;
+	font-size: 14px;
+}
+.head{
+	width: 100%;
+	color: #fff;
+	background-color: #0090d9;
+	padding: 20px;
+
+	/* margin: 0 auto; */
+}
+.footer{
+	position: fixed;
+	bottom: 0;
+	padding: 10px;
+	text-align: center;
+	width: 100%;
+	border-top: 1px solid #ddd;
+	font-size: 11px;
+}
+.content{
+	max-width: 660px;
+	margin: 20px auto;
+}
+.index-links{
+}
+.index-links li{
+	list-style: none;
+	float: left;
+}
+.index-links li a{
+	width: 330px;
+	margin: 5px;
+	color: #2a2a2a;
+	text-decoration: none;
+	display: block;
+	padding: 9px;
+	border: 1px solid #ddd;
+	width: 300px;
+	font-size: 18px;
+}
+.index-links li a:hover{
+	color: #fff;
+	background-color: #0090d9;
+}
+
+span.help{
+	display: block;
+	font-size: 11px;
+	padding-top: 5px;
+}
+
+.clearfix:after {
+	visibility: hidden;
+	display: block;
+	font-size: 0;
+	content: " ";
+	clear: both;
+	height: 0;
+}
