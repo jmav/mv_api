@@ -403,7 +403,7 @@
 			'`index` '+
 			'FROM countries_values INNER JOIN indexes ON countries_values.IDCountry = indexes.tableID AND countries_values.lang = indexes.lang '+
 			'WHERE countries_values.field = "title" '+
-			'AND IDCountry NOT IN (23, 21, 28, 22)  '+
+			'AND IDCountry NOT IN (21, 28, 22)  '+
 			'GROUP BY countries_values.ID '+
 			'ORDER BY `value` ';
 
@@ -415,7 +415,10 @@
 			_.each(countryGroup, function(obj, key, list){
 				var nObj = {};
 				_.each(obj, function(val, key) {
-					nObj[val.lang] = [val.title || '', val.index];
+					if (val.IDCountry === 23 && ( ['si', 'hr'].indexOf(val.lang) === -1 )){
+					} else {
+						nObj[val.lang] = [val.title || '', val.index];
+					}
 				});
 				list[key] = nObj;
 			});
@@ -446,7 +449,7 @@
 						'FROM countries INNER JOIN resorts ON countries.ID = resorts.IDCountry '+
 						'	INNER JOIN indexes ON resorts.ID = indexes.tableID '+
 						'WHERE resorts.visible = TRUE '+
-						'AND IDCountry NOT IN (23, 21, 28, 22) '+
+						'AND IDCountry NOT IN (21, 28, 22) '+
 						'AND `default` = TRUE '+
 						'AND indexes.table = "resorts" '+
 						'GROUP BY resorts.ID '+
