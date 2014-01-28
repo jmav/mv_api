@@ -135,7 +135,7 @@
 
 					if(action){
 			 			action = action.split(',');
-						var idxJs = 'MV.data.forecast=' +  JSON.stringify(filteredList);
+						var idxJs = 'MV.data.forecast=' +  JSON.stringify(filteredList) + ';';
 						_.each(action, function(server){
 							var path = config.pathMap[server] || 'x'; //sym. error
 							outSftp(res, idxJs, 'data-forecast.js', path);
@@ -259,7 +259,7 @@
 
 					if(action){
 			 			action = action.split(',');
-						var idxJs = 'MV.data.accShortDesc=' +  JSON.stringify(filteredList);
+						var idxJs = 'MV.data.accShortDesc=' +  JSON.stringify(filteredList) + ';';
 						_.each(action, function(server){
 							var path = config.pathMap[server] || 'x'; //sym. error
 							outSftp(res, idxJs, 'data-accShortDesc.js', path);
@@ -380,7 +380,7 @@
 
 			if(action){
 				action = action.split(',');
-				var idxJs = 'MV.data.info=' +  JSON.stringify(rows);
+				var idxJs = 'MV.data.info=' +  JSON.stringify(rows) + ';';
 				_.each(action, function(server){
 
 					var path = config.pathMap[server] || 'x'; //sym. error
@@ -425,7 +425,7 @@
 
 			if(action){
 				action = action.split(',');
-				var idxJs = 'MV.data.countries=' +  JSON.stringify(countryGroup);
+				var idxJs = 'MV.data.countries=' +  JSON.stringify(countryGroup) + ';';
 				_.each(action, function(server){
 					var path = config.pathMap[server] || 'x'; //sym. error
 					outSftp(res, idxJs, 'data-countries.js', path);
@@ -476,7 +476,7 @@
 
 			if(action){
 				action = action.split(',');
-				var idxJs = 'MV.data.resorts=' +  JSON.stringify(countryGroup);
+				var idxJs = 'MV.data.resorts=' +  JSON.stringify(countryGroup) + ';';
 				_.each(action, function(server){
 					var path = config.pathMap[server] || 'x'; //sym. error
 					outSftp(res, idxJs, 'data-resorts.js', path);

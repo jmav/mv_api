@@ -1,8 +1,8 @@
 {
   "author": "Jure Mav",
-  "name": "test-mysql",
+  "name": "mv-infra",
   "version": "0.0.1",
-  "description": "Test of mysql",
+  "description": "MV infrasctructure tools",
   "scripts": {
     "start": "node ./app-country-index.js"
   },
