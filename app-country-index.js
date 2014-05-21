@@ -412,12 +412,20 @@
 
 			var countryGroup = _.groupBy(rows, function(val){ return val.IDCountry; });
 
+
 			_.each(countryGroup, function(obj, key, list){
 				var nObj = {};
+					console.log('---', obj);
+
 				_.each(obj, function(val, key) {
-					if (val.IDCountry === 23 && ( ['si', 'hr'].indexOf(val.lang) === -1 )){
+					if (val.IDCountry === 23 && ( ['si', 'sl', 'hr'].indexOf(val.lang) === -1 )){
 					} else {
 						nObj[val.lang] = [val.title || '', val.index];
+						// Clone si object
+						if ( val.lang = 'si' ) {
+							nObj.sl = nObj[val.lang];
+						}
+
 					}
 				});
 				list[key] = nObj;
