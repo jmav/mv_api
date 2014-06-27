@@ -415,18 +415,18 @@
 
 			_.each(countryGroup, function(obj, key, list){
 				var nObj = {};
-					console.log('---', obj);
 
 				_.each(obj, function(val, key) {
-					if (val.IDCountry === 23 && ( ['si', 'sl', 'hr'].indexOf(val.lang) === -1 )){
-					} else {
-						nObj[val.lang] = [val.title || '', val.index];
-						// Clone si object
-						if ( val.lang = 'si' ) {
-							nObj.sl = nObj[val.lang];
-						}
 
+					nObj[val.lang] = [val.title || '', val.index];
+					// Clone lang objects
+					if ( val.lang === 'si' ) {
+						nObj.sl = nObj[val.lang];
 					}
+					if ( val.lang === 'cz' ) {
+						nObj.cs = nObj[val.lang];
+					}
+
 				});
 				list[key] = nObj;
 			});
