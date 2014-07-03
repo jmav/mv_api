@@ -593,11 +593,11 @@
 		var sftp = require('sftp');
 		// var dataCp = iconv.convert(data);
 		var dataCp = data;
-		config.sftp_dedi.home = path;
+		config.sftp_api1.home = path;
 		printTime();
 
 		sftp = new sftp(
-			config.sftp_dedi,
+			config.sftp_api1,
 			function(err) {
 				//Error
 				if (err) throw err;
