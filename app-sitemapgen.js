@@ -1,96 +1,95 @@
 //generate sitemap.xml from active DB & copy it to server
-var config = require('./config');
-sm = require('./sitemapgen.js'),
-Q = require('q'),
-// express = require('express'),
-mysql = require('mysql'),
-_ = require('underscore'),
-pd = require('pretty-data').pd,
-fs = require('fs'),
-sftp = require('sftp'),
-log4js = require('log4js');
+var config = require('./config'),
+	sm = require('./sitemapgen.js'),
+	Q = require('q'),
+	// express = require('express'),
+	mysql = require('mysql'),
+	_ = require('underscore'),
+	pd = require('pretty-data').pd,
+	fs = require('fs'),
+	sftp = require('sftp'),
+	log4js = require('log4js');
 
 //dev modules
 var inspect = require('eyes').inspector();
 
 // init
 var logger = log4js.getLogger(),
-dbConLocal = mysql.createConnection(config.mysqlConn_local),
-dbConProd1 = mysql.createConnection(config.mysqlConn_1);
+	dbConProd1 = mysql.createConnection(config.mysqlConn_1),
+	domains = require('./config/domains.json').production,
+	domainsQ = [];
 
-//app
+domains = _.omit(domains, ['default']);
 
-//get all
+// get urls from DB
+var getUrls = function(options) {
 
+	if ( !options.lang ) { return; }
 
-var getCountries = function(lang) {
-	lang = lang || 'en';
 	var deferred = Q.defer();
-	config.sftp_dedi.home = config.pathMap['live_sitemap'] + lang; //set sftp path
 
-	var queryStr = 	'SELECT url , '+
-					'CASE  '+
-					'    WHEN IDaccommodation > "" THEN 0.8 '+
-					'    WHEN IDresort > "" THEN 0.9 '+
-					'    WHEN IDcountry > "" THEN 0.7 '+
-					'    else 5 '+
-					'END as priority '+
-					'FROM index_urls '+
-					'WHERE index_urls.url LIKE "/'+lang+'/%" '+
-					'AND index_urls.IDFacility = "" '+
-					'GROUP BY index_urls.url ' +
-					'ORDER BY url'
+	config.sftp_api1.home = config.pathMap['live_sitemap'] + options.lang; //set sftp path
 
-	dbConProd1.query(queryStr, function(err, rows, fields) {
+	var queryStr =	'SELECT url, ' +
+					'CASE  ' +
+					'    WHEN path LIKE "accommodation.%" THEN 0.8 ' +
+					'    WHEN path LIKE "resort.%" THEN 0.9 ' +
+					'    WHEN path LIKE "resortfinder.%" THEN 0.7 ' +
+					'    else 5 ' +
+					'END as priority ' +
+					'FROM routing  ' +
+					'WHERE lang = ? ' +
+					'AND redirect = 0 ' +
+					'ORDER BY url ';
+
+
+	dbConProd1.query(queryStr, [options.lang], function(err, rows, fields) {
 		if(err) deferred.reject(err);
-		if(rows[0].url.indexOf('//') != -1){ //bug fix, some (hr, sp ...) domains have root
-			rows.splice(0, 0);
-		}
-		rows.unshift({url:'/'+lang+'/', priority: 1, freq: 'daily'}); //append domain root
-		deferred.resolve(rows, fields);
+
+		// if(rows[0].url.indexOf('//') != -1){ //bug fix, some (hr, sp ...) domains have root
+		// 	rows.splice(0, 0);
+		// }
+		// rows.unshift({url:'/'+options.lang+'/', priority: 1, freq: 'daily'}); //append domain root
+		options.data = rows;
+		options.fields = fields;
+		options.dist = 'dist';
+
+		deferred.resolve(options);
 	});
 
 	return deferred.promise;
 };
 
+_.each(domains, function( attrs, domain ) {
 
-// getCountries('si');
-// getCountries('hr');
-// getCountries('it');
-// getCountries('de');
-// getCountries('fr');
-// getCountries('pl');
-// getCountries('cz');
+	attrs.domain = domain;
 
-// getCountries('en')
-	// .then(function(){getCountries('fr');});
-var countries = ['', 'si', 'hr', 'it', 'de', 'fr', 'pl', 'cz', 'en'];
-// var countries = ['', 'en'];
+	var domainQ = getUrls( attrs )
+		.then( sm.mkDistDir )
+		.then( sm.generateXml )
+		// .then( sm.saveToFile )
+		.then( sm.gzip )
+		.then( sm.saveToFile );
 
-_(countries).each( function( value, key, countries ) {
+	domainsQ.push(domainQ);
 
-	getCountries(value)
-		.then(sm.generate_xml)
-		// .then(sm.saveToFile)
-		.then(function(data){
-			var conf = _.defaults({home: config.pathMap.live_sitemap + value}, config.sftp_dedi);
-			return sm.saveOverSftp(data, conf);
-		})
-		.then(sm.gzip)
-		.then(function(data){
-			var conf = _.defaults({home: config.pathMap.live_sitemap + value, filename: 'sitemap.xml.gz'}, config.sftp_dedi);
-			return sm.saveOverSftp(data, conf);
-		})
-		.then(
-			function(rows){
-				logger.info('done: ' + value);
-				if(value === 'en'){
-					setTimeout(function(){
-						logger.info('Process complete ' + value);
-						process.exit(code=0);
-					}, 5000);
-				}
-			},
-			function(err){logger.error(err);}
-		)
 });
+
+// Q.allSettled(domainsQ)
+Q.all(domainsQ)
+	.then(function (results, err) {
+
+		if (err) {
+			console.error(err);
+			process.exit(code=1);
+		} else {
+			console.info('All sitemaps build-ed successfully!');
+			process.exit(code=0);
+
+		}
+
+	})
+	.fail( function(err) {
+		console.error(err);
+		process.exit(code=1);
+	});

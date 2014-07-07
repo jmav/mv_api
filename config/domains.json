@@ -1,0 +1,118 @@
+{
+	"development": {
+		"default": {
+			"protocol": "http",
+			"name": "mv.com",
+			"lang": "en"
+		},
+		"mv.com": {
+			"protocol": "https",
+			"lang": "en"
+		},
+		"mv.co.uk": {
+			"lang": "en"
+		},
+		"mv.si": {
+			"lang": "sl"
+		},
+		"mv.it": {
+			"lang": "it"
+		},
+		"mv.hr": {
+			"lang": "hr"
+		},
+		"mv.de": {
+			"lang": "de"
+		},
+		"mv.fr": {
+			"lang": "fr"
+		},
+		"mv.cz": {
+			"lang": "cs"
+		},
+		"mv.pl": {
+			"lang": "pl"
+		}
+	},
+	"test": {
+		"default": {
+			"protocol": "http",
+			"name": "mv.com",
+			"lang": "en"
+		},
+		"test.mv.com": {
+			"protocol": "https",
+			"lang": "en"
+		},
+		"test.mv.co.uk": {
+			"lang": "en"
+		},
+		"test.mv.si": {
+			"lang": "sl"
+		},
+		"test.mv.it": {
+			"lang": "it"
+		},
+		"test.mv.hr": {
+			"lang": "hr"
+		},
+		"test.mv.de": {
+			"lang": "de"
+		},
+		"test.mv.fr": {
+			"lang": "fr"
+		},
+		"test.mv.cz": {
+			"lang": "cs"
+		},
+		"test.mv.pl": {
+			"lang": "pl"
+		}
+	},
+	"production": {
+		"default": {
+			"protocol": "http",
+			"name": "www.mountvacation.com",
+			"lang": "en"
+		},
+		"www.mountvacation.com": {
+			"protocol": "https",
+			"lang": "en",
+			"googleAnalyticsGA": "UA-5695935-1"
+		},
+		"www.mountvacation.co.uk": {
+			"lang": "en",
+			"googleAnalyticsGA": "UA-5695935-7"
+		},
+		"www.mountvacation.si": {
+			"lang": "sl",
+			"googleAnalyticsGA": "UA-5695935-6"
+		},
+		"www.mountvacation.it": {
+			"lang": "it",
+			"googleAnalyticsGA": "UA-5695935-10"
+		},
+		"www.mountvacation.hr": {
+			"lang": "hr",
+			"googleAnalyticsGA": "UA-5695935-5"
+		},
+		"www.mountvacation.de": {
+			"lang": "de",
+			"googleAnalyticsGA": "UA-5695935-9"
+		},
+		"www.mountvacation.fr": {
+			"lang": "fr",
+			"googleAnalyticsGA": "UA-5695935-8"
+		},
+		"www.mountvacation.cz": {
+			"lang": "cs",
+			"googleAnalyticsGA": "UA-5695935-12"
+		},
+		"www.mountvacation.pl": {
+			"lang": "pl",
+			"googleAnalyticsGA": "UA-5695935-11"
+		}
+	}
+
+
+}
