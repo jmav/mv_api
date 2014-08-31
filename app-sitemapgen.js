@@ -37,7 +37,7 @@ var getUrls = function(options) {
         '    WHEN path LIKE "accommodation.%" THEN 0.8 ' +
         '    WHEN path LIKE "resort.%" THEN 0.9 ' +
         '    WHEN path LIKE "resortfinder.%" THEN 0.7 ' +
-        '    else 5 ' +
+        '    else 0.5 ' +
         'END as priority ' +
         'FROM routing  ' +
         'WHERE lang = ? ' +
