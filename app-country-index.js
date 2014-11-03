@@ -449,7 +449,7 @@ function getResorts(req, res) {
 
     var queryStr = 'SELECT ' +
         'IDCountry, ' +
-        'resorts.ID, ' +
+        'resorts.ID as id, ' +
         'resorts.title, ' +
         '`index` ' +
         'FROM countries INNER JOIN resorts ON countries.ID = resorts.IDCountry ' +
@@ -462,22 +462,22 @@ function getResorts(req, res) {
         'ORDER BY title ';
 
     dbConProd1.query(queryStr, function(err, rows, fields) {
+
         if (err) throw err;
-        rows.push({
-            IDCountry: 19,
-            ID: 76,
-            title: 'Vogel',
-            index: 'bohinj'
-        }); //fake insert
-        rows.push({
-            IDCountry: 19,
-            ID: 142,
-            title: 'Terme snovik',
-            index: 'krvavec'
-        }); //fake insert
+
+        _.each(rows, function(resort){
+            if(resort.id === 76){
+                resort.title += ' (Vogel)';
+            }
+
+            if(resort.id === 142){
+                resort.title += ' (Terme snovik)';
+            }
+
+        });
 
         countryGroup = _.map(rows, function(val) {
-            return [val.title, val.ID, val.index, val.IDCountry];
+            return [val.title, val.id, val.index, val.IDCountry];
         });
 
         if (action) {
