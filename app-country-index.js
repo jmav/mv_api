@@ -485,7 +485,7 @@ function getResorts(req, res) {
         rows.push({
             IDCountry: 19,
             id: 142,
-            title: ,
+            title: 'Terme snovik',
             index: 'krvavec'
         }); //fake insert
 
