@@ -467,7 +467,7 @@ function getResorts(req, res) {
 
         _.each(rows, function(resort){
             if(resort.id === 76){
-                resort.title += ' (Vogel)';
+                resort.title += ' (Vogel, Pokljuka)';
             }
 
             if(resort.id === 142){
@@ -480,6 +480,12 @@ function getResorts(req, res) {
             IDCountry: 19,
             id: 76,
             title: 'Vogel',
+            index: 'bohinj'
+        }); //fake insert
+        rows.push({
+            IDCountry: 19,
+            id: 76,
+            title: 'Pokljuka',
             index: 'bohinj'
         }); //fake insert
         rows.push({
