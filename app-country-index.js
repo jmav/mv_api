@@ -476,6 +476,19 @@ function getResorts(req, res) {
 
         });
 
+        rows.push({
+            IDCountry: 19,
+            id: 76,
+            title: 'Vogel',
+            index: 'bohinj'
+        }); //fake insert
+        rows.push({
+            IDCountry: 19,
+            id: 142,
+            title: ,
+            index: 'krvavec'
+        }); //fake insert
+
         countryGroup = _.map(rows, function(val) {
             return [val.title, val.id, val.index, val.IDCountry];
         });
