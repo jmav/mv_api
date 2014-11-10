@@ -1,25 +1,118 @@
 //generate sitemap.xml from active DB & copy it to server
 var config = require('./config'),
-    sm = require('./sitemapgen.js'),
     Q = require('q'),
-    // express = require('express'),
     mysql = require('mysql'),
-    _ = require('underscore'),
-    pd = require('pretty-data').pd,
+    moment = require('moment'),
+    zlib = require('zlib'),
+    mkdirp = require('mkdirp'),
     fs = require('fs'),
-    sftp = require('sftp'),
-    log4js = require('log4js');
+    _ = require('underscore');
 
 //dev modules
 var inspect = require('eyes').inspector();
 
 // init
-var logger = log4js.getLogger(),
-    dbConProd1 = mysql.createConnection(config.mysqlConn_1),
+var dbConProd1 = mysql.createConnection(config.mysqlConn_1),
     domains = require('./config/domains.json').production,
     domainsQ = [];
 
 domains = _.omit(domains, ['default']);
+
+
+
+//Promises supported xml generator
+var sm = {
+    generateXml: function(options) {
+        var deferred = Q.defer(),
+            url_list = options.data;
+
+        options = _.defaults({ //defaults
+            rootPath: 'http://' + options.domain + '/',
+            priority: 0.5,
+            freq: 'monthly',
+            lastmod: moment().format("YYYY-MM-DD")
+        }, options);
+
+        //XML template
+        var xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        _.each(url_list, function(element, index, list) {
+            xml += '<url>';
+            xml += '<loc>' + options.rootPath + element.url + '</loc>';
+            xml += '<changefreq>' + (element.freq || options.freq) + '</changefreq>';
+            xml += '<priority>' + (element.priority || options.priority) + '</priority>';
+            xml += '<lastmod>' + (element.lastmod || options.lastmod) + '</lastmod>';
+            xml += '</url>';
+        });
+        xml += '</urlset>';
+
+        options.data = xml;
+        options.filename = options.domain + '-sitemap.xml';
+
+        deferred.resolve(options);
+
+        return deferred.promise;
+    },
+    gzip: function(options) {
+
+        var deferred = Q.defer(),
+            buffer = new Buffer(options.data, 'utf8');
+
+        zlib.gzip(buffer, function(err, data) {
+            if (err) {
+                deferred.reject(err);
+            }
+
+            options.data = data;
+
+            deferred.resolve(options);
+        });
+
+        options.filename = options.domain + '-sitemap.xml.gz';
+
+
+        return deferred.promise;
+    },
+    saveToFile: function(options) {
+
+        var deferred = Q.defer(),
+            path = options.dist + '/' + options.filename;
+
+        mkdirp(options.dist, function(err) {
+            if (err) return console.error(err);
+
+
+
+            fs.writeFile(path, options.data, function(err) {
+                if (err) {
+                    if (err.code === 'ENOENT') {
+                        err = ('No such file or directory ' + path + '!');
+                    }
+                    deferred.reject(err);
+                } else {
+                    var cprs = '';
+                    console.info("The file: " + options.filename + " was saved!");
+                    deferred.resolve(options);
+                }
+            });
+
+
+        });
+
+        return deferred.promise;
+    },
+    printErr: function(err) {
+        var nl = 100;
+        var err_txt = err.substr(0, nl);
+        console.error(err_txt);
+    }
+
+};
+
+
+
+// **************
+// APP
+// **************
 
 // get urls from DB
 var getUrls = function(options) {
@@ -29,8 +122,6 @@ var getUrls = function(options) {
     }
 
     var deferred = Q.defer();
-
-    config.sftp_api1.home = config.pathMap['live_sitemap'] + options.lang; //set sftp path
 
     var queryStr = 'SELECT url, ' +
         'CASE  ' +
@@ -49,13 +140,9 @@ var getUrls = function(options) {
     dbConProd1.query(queryStr, [options.lang], function(err, rows, fields) {
         if (err) deferred.reject(err);
 
-        // if(rows[0].url.indexOf('//') != -1){ //bug fix, some (hr, sp ...) domains have root
-        // 	rows.splice(0, 0);
-        // }
-        // rows.unshift({url:'/'+options.lang+'/', priority: 1, freq: 'daily'}); //append domain root
         options.data = rows;
         options.fields = fields;
-        options.dist = 'dist';
+        options.dist = config.baseSitemapsExportPath;
 
         deferred.resolve(options);
     });
@@ -68,9 +155,7 @@ _.each(domains, function(attrs, domain) {
     attrs.domain = domain;
 
     var domainQ = getUrls(attrs)
-        .then(sm.mkDistDir)
         .then(sm.generateXml)
-        // .then( sm.saveToFile )
         .then(sm.gzip)
         .then(sm.saveToFile);
 

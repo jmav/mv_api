@@ -5,3 +5,7 @@ mv-api.sublime-project
 mv-api.sublime-workspace
 sitemap.xml
 dist
+mv-infra.sublime-project
+mv-infra.sublime-workspace
+data
+npm-debug.log
