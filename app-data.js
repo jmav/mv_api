@@ -92,7 +92,9 @@ var getCountries = function() {
 
         var data = 'MV.data.countries=' + JSON.stringify(countryGroup);
         // use process.exit to exit parsing all languages
-        saveFile(data, 'data-countries.js', process.exit);
+        saveFile(data, 'data-countries.js', function(){
+            process.exit(code = 0);
+        });
 
     });
 };
@@ -172,7 +174,9 @@ var getResorts = function() {
 
         var data = 'MV.data.resorts=' + JSON.stringify(resortGroup);
         // use process.exit to exit parsing all languages
-        saveFile(data, 'data-resorts.js', process.exit);
+        saveFile(data, 'data-resorts.js', function(){
+            process.exit(code = 0);
+        });
 
     });
 };
@@ -288,7 +292,7 @@ if (controller) {
 
     // Parse for each lang
     async.every(languages, mCall, function(){
-        process.exit();
+        process.exit(code = 0);
     });
 
 } else {
