@@ -1,17 +1,28 @@
 //http://fabianosoriani.wordpress.com/2011/08/15/express-api-on-node-js-with-mysql-auth/
 //rest: https://github.com/visionmedia/express-resource
 
-var config = require('./config');
-codelists = require('./codelists'),
-express = require('express'),
-domain = require('domain').create(),
-mysql = require('mysql'),
-async = require('async'),
-_ = require('underscore'),
-fs = require('fs'),
-mkdirp = require('mkdirp'),
-moment = require('moment'),
-argv = require('optimist').argv;
+var config = require('./config'),
+    codelists = require('./codelists'),
+    express = require('express'),
+    domain = require('domain').create(),
+    mysql = require('mysql'),
+    async = require('async'),
+    _ = require('underscore'),
+    fs = require('fs'),
+    mkdirp = require('mkdirp'),
+    moment = require('moment'),
+    argv = require('optimist').argv;
+
+var languages = [
+        'en',
+        'de',
+        'it',
+        'fr',
+        'hr',
+        'sl',
+        'cs',
+        'pl'
+    ];
 
 /* ####     INIT     #### */
 var startTimer,
@@ -37,153 +48,6 @@ var MV = { //Mountvacation workspace
 
         },
     }
-};
-
-var getForecast = function() {
-
-    var queryStr = 'SELECT IDResort, date, summit_cond FROM myweather_dnevni_napoved;';
-    dbConProd1.query(queryStr, function(err, rows, fields) {
-        if (err) throw err;
-
-        var filteredList = _.chain(rows)
-            .filter(function(dts) {
-                var dtsDay = moment(dts.date).day();
-                return dtsDay === 0 || dtsDay === 6;
-            })
-            .groupBy(function(obj) {
-                return obj.IDResort;
-            })
-            .value();
-
-        _.each(filteredList, function(obj, key) {
-            var objS = {
-                d6: '',
-                d0: ''
-            }; //V8 doesn't have insertation order
-            _.each(obj, function(val, i) {
-                var sumPerc = codelists.weatherSymbolsPercentage[val.summit_cond];
-                if (typeof(sumPerc) === 'undefined') {
-                    console.log('undefined weather symbol:', val);
-                    sumPerc = 0;
-                }
-                var day = moment(val.date).day();
-                objS['d' + day] = [val.summit_cond, sumPerc, moment(val.date).format('D.M.YYYY'), day];
-            });
-            filteredList[key] = objS;
-        });
-
-        saveFile(filteredList, 'MV.data.forecast', 'data-forecast.js');
-
-    });
-};
-
-var getResortsIndex = function() {
-    var diskImgList = fs.readdirSync(config.baseImageUrl);
-
-    var queryStr = 'SELECT resorts.ID as rid, ' +
-        '   IDCountry as cid, ' +
-        '   resorts.title as title, ' +
-        '   indexes.index as idx, ' +
-        '   resorts_values.field, ' +
-        '   LEFT(resorts_values.`value`, 20) as valorig, ' +
-        '   IF(LEFT(field,4) = "seg_" AND resorts_values.`value` > "", TRUE, resorts_values.`value`) as val ' +
-        'FROM resorts ' +
-        'INNER JOIN indexes ON resorts.ID = indexes.tableID ' +
-        'INNER JOIN resorts_values ON resorts.ID = resorts_values.IDResort ' +
-
-        'WHERE resorts.visible = "True" ' +
-        'AND indexes.table = "resorts" ' +
-        'AND indexes.`default` = TRUE ' +
-        'AND (resorts_values.lang = "en" OR resorts_values.lang = "") ' +
-        'AND resorts_values.`value` > "" ' +
-        'AND field IN("slopes_all","slopes_blue","slopes_red","slopes_black","slopes_green", ' +
-        '   "slopes_number","slopes_cross","artificial_snow","airport_distance","gastronomy_restaurants", ' +
-        '   "gastronomy_bars","sealevel_minheight","sealevel_maxheight","images","seg_family_ski", ' +
-        '   "seg_free_style","seg_free_ride","seg_romantic","seg_cross_country","seg_ski_party","seg_ski_spa", ' +
-        '   "publicw_thermal_spa","child_slope","child_lift","child_care","child_carpet_lift","child_park", ' +
-        '   "snowboard_halfpipe","snowboard_funpark","snowboard_corner","snowboard_wave","snowboard_cross", ' +
-        '   "snowboard_jumps","snowboard_slides","snowboard_boxen","snowboard_rides", "priority")';
-
-    dbConProd1.query(queryStr, function(err, rows, fields) {
-        if (err) throw err;
-
-        var resorts = _.groupBy(rows, function(obj) {
-            return obj.rid;
-        });
-
-        var resFiltered = _.map(resorts, function(obj, key, list) {
-            var resObj = {
-                // priority: obj.priority,
-                id: obj[0].rid,
-                cid: obj[0].cid,
-                title: obj[0].title,
-                idx: obj[0].idx,
-                seg: [],
-                s_park: [],
-                family: [],
-                other: []
-            };
-
-            _.each(obj, function(val) { //each field
-                var fld = codelists.resortFieldsShort[val.field]; //|| val.field;
-
-                if (fld === 'img') { //images
-                    var strToArr = eval(val.val)[0] || '';
-                    var exists = diskImgList.indexOf("resort_" + obj[0].rid + "_1_sm.jpg") !== -1; //check for maps
-                    if (exists) {
-                        resObj[fld] = 'map';
-                    } else {
-                        resObj[fld] = strToArr || 'no-image';
-                    }
-                    return;
-                }
-
-                if (_.isUndefined(fld)) {
-                    _.each(codelists.resortsFieldsGroups, function(group, searchP) {
-                        if (val.field.indexOf(searchP) === 0) resObj[group.groupName].push(group[val.field]);
-                    });
-                } else {
-                    var valN = parseFloat(val.val.replace('False', 0), 10); //pretvorba num bol string
-                    if (_.isNaN(val.val)) valN = val.val;
-                    if (!_.isNull(valN)) resObj[fld] = valN;
-                }
-            });
-            return resObj;
-        });
-
-        resFiltered = _.sortBy(resFiltered, function(objF) {
-            // console.log(objF, key, list);
-            return objF.pri;
-        });
-
-        saveFile(resFiltered, 'MV.country.data.resorts', 'resorts-index.js');
-
-    });
-};
-
-var getInfo = function() {
-
-    var queryStr = 'SELECT 88000 + SUM(nights) as nights ' +
-        'FROM ( ' +
-        'SELECT ' +
-        '...booking2_cart.ID, ' +
-        '...SUM(booking2_cart_content.stay) as nights ' +
-        'FROM ' +
-        '...booking2_cart ' +
-        'LEFT JOIN ' +
-        '...booking2_cart_content ON booking2_cart_content.IDCart = booking2_cart.ID ' +
-        'LEFT JOIN ' +
-        '...booking2_cart_content_persons ON booking2_cart_content_persons.IDContent=booking2_cart_content.ID ' +
-        'WHERE booking2_cart.status="payment" ' +
-        'AND booking2_cart.payment_status="completed" ' +
-        'GROUP BY booking2_cart.ID) as nights_per_booking; ';
-
-    dbConProd1.query(queryStr, function(err, rows, fields) {
-        if (err) throw err;
-        rows = rows[0];
-
-        saveFile(rows, 'MV.data.info', 'data-info.js');
-    });
 };
 
 var getCountries = function() {
@@ -226,15 +90,33 @@ var getCountries = function() {
             list[key] = nObj;
         });
 
-        saveFile(countryGroup, 'MV.data.countries', 'data-countries.js');
+        var data = 'MV.data.countries=' + JSON.stringify(countryGroup);
+        // use process.exit to exit parsing all languages
+        saveFile(data, 'data-countries.js', process.exit);
 
     });
+};
+
+var getRegions = function(lang, callback) {
+
+    var queryStr = 'SELECT ID as id, title, IDCountry FROM regions';
+
+    dbConProd1.query(queryStr, function(err, rows, fields) {
+
+        if (err) throw err;
+
+        var data = 'MV.data.regions=' + JSON.stringify(rows);
+        saveFile(data, 'data-set-' + lang + '.js', callback);
+
+    });
+
 };
 
 var getResorts = function() {
 
     var queryStr = 'SELECT ' +
         'IDCountry, ' +
+        'IDRegion, ' +
         'resorts.ID as id, ' +
         'resorts.title, ' +
         '`index` ' +
@@ -251,12 +133,12 @@ var getResorts = function() {
 
         if (err) throw err;
 
-        _.each(rows, function(resort){
-            if(resort.id === 76){
+        _.each(rows, function(resort) {
+            if (resort.id === 76) {
                 resort.title += ' (Vogel, Pokljuka)';
             }
 
-            if(resort.id === 142){
+            if (resort.id === 142) {
                 resort.title += ' (Terme snovik)';
             }
 
@@ -264,28 +146,33 @@ var getResorts = function() {
 
         rows.push({
             IDCountry: 19,
+            IDRegion: 4252,
             id: 76,
             title: 'Vogel',
             index: 'bohinj'
         }); //fake insert
         rows.push({
             IDCountry: 19,
+            IDRegion: 4252,
             id: 76,
             title: 'Pokljuka',
             index: 'bohinj'
         }); //fake insert
         rows.push({
             IDCountry: 19,
+            IDRegion: 4252,
             id: 142,
             title: 'Terme snovik',
             index: 'krvavec'
         }); //fake insert
 
         var resortGroup = _.map(rows, function(val) {
-            return [val.title, val.id, val.index, val.IDCountry];
+            return [val.title, val.id, val.index, val.IDCountry, val.IDRegion];
         });
 
-        saveFile(resortGroup, 'MV.data.resorts', 'data-resorts.js');
+        var data = 'MV.data.resorts=' + JSON.stringify(resortGroup);
+        // use process.exit to exit parsing all languages
+        saveFile(data, 'data-resorts.js', process.exit);
 
     });
 };
@@ -363,16 +250,20 @@ var getResortsIndex = function() {
 };
 
 //save to file
-var saveFile = function(data, varName, fileName) {
-    var js = varName + '=' + JSON.stringify(data);
+var saveFile = function(data, fileName, callback) {
 
-    mkdirp(config.baseExportPath, function (err) {
-        if (err) return console.error(err);
+    mkdirp(config.baseExportPath, function(err) {
+        if (err) throw err;
 
-        fs.writeFile(config.baseExportPath + '/' + fileName, js, function (err) {
-          if (err) return console.error(err);
-          console.log('File %s written!', fileName);
-          process.exit();
+        fs.writeFile(config.baseExportPath + '/' + fileName, data, function(err) {
+
+            if (err) throw err;
+
+            console.log('File %s written!', fileName);
+            if(callback){
+                callback(true);
+            }
+
         });
     });
 };
@@ -385,10 +276,8 @@ if (controller) {
 
     var methodMap = {
         countries: getCountries,
-        resorts: getResorts,
-        resortsIndexNew: getResortsIndex,
-        info: getInfo,
-        forecast: getForecast
+        regions: getRegions,
+        resorts: getResorts
     };
 
     var mCall = methodMap[controller];
@@ -396,7 +285,11 @@ if (controller) {
         console.error('Wrong controler');
         process.exit(code = 0); //exit app
     }
-    mCall();
+
+    // Parse for each lang
+    async.every(languages, mCall, function(){
+        process.exit();
+    });
 
 } else {
 
