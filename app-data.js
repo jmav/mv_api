@@ -101,9 +101,12 @@ var getCountries = function() {
 
 var getRegions = function(lang, callback) {
 
-    var queryStr = 'SELECT ID as id, title, IDCountry FROM regions';
+    var queryStr =  'SELECT regions.ID as id, regions_values.value as title, regions.IDCountry AS IDCountry ' +
+                    'FROM regions ' +
+                    '   INNER JOIN regions_values ON regions_values.IDRegion = regions.ID AND regions_values.field = "title" ' +
+                    'WHERE lang = ?';
 
-    dbConProd1.query(queryStr, function(err, rows, fields) {
+    dbConProd1.query(queryStr, [lang], function(err, rows, fields) {
 
         if (err) throw err;
 
