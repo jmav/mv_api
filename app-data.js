@@ -101,12 +101,14 @@ var getCountries = function() {
 
 var getRegions = function(lang, callback) {
 
+    var customLang = lang.replace('sl', 'si').replace('cs', 'cz');
+
     var queryStr =  'SELECT regions.ID as id, regions_values.value as title, regions.IDCountry AS IDCountry ' +
                     'FROM regions ' +
                     '   INNER JOIN regions_values ON regions_values.IDRegion = regions.ID AND regions_values.field = "title" ' +
                     'WHERE lang = ?';
 
-    dbConProd1.query(queryStr, [lang], function(err, rows, fields) {
+    dbConProd1.query(queryStr, [customLang], function(err, rows, fields) {
 
         if (err) throw err;
 
@@ -290,6 +292,7 @@ if (controller) {
     var mCall = methodMap[controller];
     if (!mCall) {
         console.error('Wrong controler');
+        console.info('Try: node app-data.js -c regions');
         process.exit(code = 0); //exit app
     }
 
@@ -300,7 +303,8 @@ if (controller) {
 
 } else {
 
-    console.error('Wrong controler');
+    console.error('You didn\'t specify a controller!');
+    console.info('Try: node app-data.js -c regions');
     process.exit(code = 0); //exit app
 
 }
